@@ -5,28 +5,33 @@
   <meta charset="UTF-8" />
   <title>Frühstückskasse</title>
 
-  <!-- ✅ KORREKTER Supabase CDN -->
+  <!-- ✅ Supabase CDN (UMD, genau diese Zeile) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
 
+  <!-- optional: Favicon‑Fehler vermeiden -->
+  <link rel="icon" href="data:,">
+</head>
 <body>
+
   <h1>Frühstückskasse</h1>
 
-  <input id="username" placeholder="Dein Name" /><br /><br />
-  <input id="password" type="password" placeholder="Dein Passwort" /><br /><br />
+  <input id="username" placeholder="Dein Name" />
+  <br><br>
 
-  <button onclick="login()">Anmelden / Registrieren</button>
+  <input id="password" type="password" placeholder="Dein Passwort" />
+  <br><br>
+
+  <button id="loginBtn">Anmelden / Registrieren</button>
 
   <p id="status"></p>
 
   <script>
-    // ✅ Supabase initialisieren
-    const SUPABASE_URL = "https://DEIN-PROJEKT.supabase.co";
-    const SUPABASE_ANON_KEY = "DEIN_ANON_PUBLIC_KEY";
+    // ✅ Supabase korrekt initialisieren (NICHT neu deklarieren!)
+    const { createClient } = supabase;
 
-    const supabase = supabaseJs.createClient(
-      SUPABASE_URL,
-      SUPABASE_ANON_KEY
+    const client = createClient(
+      "https://DEIN-PROJEKT-ID.supabase.co",
+      "DEIN_ANON_PUBLIC_KEY"
     );
 
     function normalizeUsername(name) {
@@ -47,24 +52,24 @@
       const username = normalizeUsername(rawName);
       const email = `${username}@fruehstueck.local`;
 
-      console.log("Login mit:", email);
+      document.getElementById("status").innerText = "⏳ Bitte warten…";
 
-      const { error } = await supabase.auth.signInWithPassword({
+      // zuerst Login versuchen
+      let { error } = await client.auth.signInWithPassword({
         email,
-        password,
+        password
       });
 
+      // wenn Login fehlschlägt → Signup
       if (error) {
-        console.log("Login fehlgeschlagen → Signup", error.message);
-
-        const result = await supabase.auth.signUp({
+        const res = await client.auth.signUp({
           email,
-          password,
+          password
         });
 
-        if (result.error) {
+        if (res.error) {
           document.getElementById("status").innerText =
-            "❌ Fehler: " + result.error.message;
+            "❌ Fehler: " + res.error.message;
           return;
         }
       }
@@ -72,6 +77,12 @@
       document.getElementById("status").innerText =
         "✅ Eingeloggt als " + rawName;
     }
+
+    // ✅ Button sauber binden (statt inline onclick)
+    document
+      .getElementById("loginBtn")
+      .addEventListener("click", login);
   </script>
+
 </body>
 </html>
