@@ -1,0 +1,77 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Frühstückskasse</title>
+
+  <!-- ✅ KORREKTER Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+  <h1>Frühstückskasse</h1>
+
+  <input id="username" placeholder="Dein Name" /><br /><br />
+  <input id="password" type="password" placeholder="Dein Passwort" /><br /><br />
+
+  <button onclick="login()">Anmelden / Registrieren</button>
+
+  <p id="status"></p>
+
+  <script>
+    // ✅ Supabase initialisieren
+    const SUPABASE_URL = "https://DEIN-PROJEKT.supabase.co";
+    const SUPABASE_ANON_KEY = "DEIN_ANON_PUBLIC_KEY";
+
+    const supabase = supabaseJs.createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    );
+
+    function normalizeUsername(name) {
+      return name
+        .trim()
+        .toLowerCase()
+        .replace(/ä/g,"ae")
+        .replace(/ö/g,"oe")
+        .replace(/ü/g,"ue")
+        .replace(/ß/g,"ss")
+        .replace(/\s+/g,"-");
+    }
+
+    async function login() {
+      const rawName = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+
+      const username = normalizeUsername(rawName);
+      const email = `${username}@fruehstueck.local`;
+
+      console.log("Login mit:", email);
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        console.log("Login fehlgeschlagen → Signup", error.message);
+
+        const result = await supabase.auth.signUp({
+          email,
+          password,
+        });
+
+        if (result.error) {
+          document.getElementById("status").innerText =
+            "❌ Fehler: " + result.error.message;
+          return;
+        }
+      }
+
+      document.getElementById("status").innerText =
+        "✅ Eingeloggt als " + rawName;
+    }
+  </script>
+</body>
+</html>
