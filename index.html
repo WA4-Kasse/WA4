@@ -55,17 +55,49 @@
       document.getElementById("status").innerText = "⏳ Bitte warten…";
 
       // zuerst Login versuchen
-      let { error } = await client.auth.signInWithPassword({
-        email,
-        password
-      });
+      let { error } = 
+const result = await client.auth.signUp({
+  email,
+  password
+});
+
+if (result.error) {
+  document.getElementById("status").innerText =
+    "❌ Fehler: " + result.error.message;
+  return;
+}
+
 
       // wenn Login fehlschlägt → Signup
       if (error) {
-        const res = await client.auth.signUp({
-          email,
-          password
-        });
+        const res = 
+const result = await client.auth.signUp({
+  email,
+  password
+});
+
+if (result.error) {
+  document.getElementById("status").innerText =
+    "❌ Fehler: " + result.error.message;
+  return;
+}
+
+        
+const userId = result.data.user.id;
+
+const insertResult = await client
+  .from("profiles")
+  .insert({
+    id: userId,
+    username: rawName
+  });
+
+if (insertResult.error) {
+  document.getElementById("status").innerText =
+    "❌ Profil konnte nicht gespeichert werden";
+  return;
+}
+
 
         if (res.error) {
           document.getElementById("status").innerText =
